@@ -264,3 +264,4 @@ cython_debug/
 # Custom
 video
 test_main.http
+config/account_list.py

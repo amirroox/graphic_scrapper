@@ -2,64 +2,20 @@ from config import config
 from time import sleep
 import os
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-import mysql.connector
+
+from scraperModules.BaseClass import BaseClass
 
 
-class FlatIcon:
+class FlatIcon(BaseClass):
     # inital
     def __init__(self, timeout=config.TIMEOUT_SLEEP):
-        self.db_cursor = None
-        self.db_connection = None
-        self.database_username = config.DATABASE_CONFIG["username"]
-        self.database_password = config.DATABASE_CONFIG["password"]
-        self.database_name = config.DATABASE_CONFIG["database"]
-        self.path_download = os.path.abspath(config.PATH_DOWNLOAD)
-        self.timeout_sleep = timeout
-        self.driver = None
-        self.connect_database()
-
-    # Initial Setup Driver
-    def setup_driver(self):
-        option = webdriver.ChromeOptions()
-        option.add_argument('--no-sandbox')
-        option.add_argument('--verbose')
-        option.add_argument("--disable-notifications")
-        option.add_argument("--start-maximized")
-        # AD Blocker Extention
-        path_adGuard = ".\\extensions\\adguard\\bgnkhhnnamicmpeenaelnjfhikgbkllg.crx"
-        option.add_argument(f"-–load-extension={path_adGuard}")
-        option.add_extension(path_adGuard)
-        # Zoom Config
-        option.add_argument('--force-device-scale-factor=0.5')
-        # Download Setup
-        option.add_experimental_option("prefs", {
-            "download.default_directory": self.path_download,
-            "download.prompt_for_download": False})
-        driver = webdriver.Chrome(options=option)
-        return driver
-
-    # Setup DataBase
-    def connect_database(self):
-        try:
-            db = mysql.connector.connect(
-                host="localhost",
-                user=self.database_username,
-                password=self.database_password,
-                database=self.database_name
-            )
-            self.db_connection = db
-            self.db_cursor = db.cursor()
-        except Exception as er:
-            print(f'SQL Error: {er}')
-            exit()
+        super().__init__(timeout)
 
     # Main Scrapper
     def scrape_icons(self, url="https://www.flaticon.com/search"):
         self.driver = self.setup_driver()
-        base_url = url
-        self.driver.get(base_url)
+        self.driver.get(url)
         self.driver.implicitly_wait(10)
 
         # Switch To AdBlocker
@@ -122,6 +78,7 @@ class FlatIcon:
 
             self.driver.find_element(by=By.ID, value='detail-close').click()
 
+    # Alone Scrapper
     def scrape_once(self, url, full_name):
         self.driver = self.setup_driver()
         base_url = url
@@ -164,10 +121,6 @@ class FlatIcon:
         # Add To DataBase
         self.db_cursor.execute("INSERT INTO flaticon (name, path) VALUES (%s, %s)", (full_name, ' '))
         self.db_connection.commit()
-
-    # Close Driver
-    def close_driver(self):
-        self.driver.close()
 
     # Search In DB
     def search(self, name):

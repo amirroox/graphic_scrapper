@@ -1,6 +1,6 @@
-from scraperModules.flatIcon import FlatIcon
+from scraperModules import freepik
 
 # Scrap Script
-scraper = FlatIcon()
-scraper.scrape_icons()
-scraper.close_driver()
+scraper = freepik.FreePik()  # Initial
+scraper.scrape_vectors()  # Main scrapper
+scraper.close_driver()  # Close
