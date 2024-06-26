@@ -1,3 +1,5 @@
+from mysql.connector.abstracts import MySQLCursorAbstract
+
 from config import config
 import os
 from selenium import webdriver
@@ -6,8 +8,9 @@ import mysql.connector
 
 class BaseClass:
     # inital
-    def __init__(self, timeout=config.TIMEOUT_SLEEP):
-        self.db_cursor = None
+    def __init__(self, timeout=config.TIMEOUT_SLEEP, AD_BLOCKER=True):
+        self.name = None
+        self.db_cursor: MySQLCursorAbstract | None = None
         self.db_connection = None
         self.database_username = config.DATABASE_CONFIG["username"]
         self.database_password = config.DATABASE_CONFIG["password"]
@@ -15,6 +18,7 @@ class BaseClass:
         self.path_download = os.path.abspath(config.PATH_DOWNLOAD)
         self.timeout_sleep = timeout
         self.driver = None
+        self.ad_blocker = AD_BLOCKER
         self.connect_database()
 
     # Initial Setup Driver
@@ -25,9 +29,10 @@ class BaseClass:
         option.add_argument("--disable-notifications")
         option.add_argument("--start-maximized")
         # AD Blocker Extention
-        path_adGuard = ".\\extensions\\adguard\\bgnkhhnnamicmpeenaelnjfhikgbkllg.crx"
-        option.add_argument(f"-–load-extension={path_adGuard}")
-        option.add_extension(path_adGuard)
+        if self.ad_blocker:
+            path_adGuard = ".\\extensions\\adguard\\bgnkhhnnamicmpeenaelnjfhikgbkllg.crx"
+            option.add_argument(f"-–load-extension={path_adGuard}")
+            option.add_extension(path_adGuard)
         # Zoom Config
         option.add_argument('--force-device-scale-factor=0.5')
         # Download Setup
