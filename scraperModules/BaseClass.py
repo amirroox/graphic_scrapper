@@ -52,7 +52,7 @@ class BaseClass:
                 database=self.database_name
             )
             self.db_connection = db
-            self.db_cursor = db.cursor()
+            self.db_cursor = db.cursor(dictionary=True)
         except Exception as er:
             print(f'SQL Error: {er}')
             exit()
