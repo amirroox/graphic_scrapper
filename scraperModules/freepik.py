@@ -1,5 +1,6 @@
-import pickle
+import json
 import random
+import re
 
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -96,7 +97,7 @@ class FreePik(BaseClass):
         # Wait To LOAD
         wait = WebDriverWait(self.driver, 30)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        vetors_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
+        vectors_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
 
         # Check Folder
         os.chdir(f'{self.path_download}')
@@ -106,7 +107,7 @@ class FreePik(BaseClass):
 
         try_temp = 1
         while True:
-            for vector in vetors_page:
+            for vector in vectors_page:
                 href_vector = vector.get_attribute('href')
                 pure_href = href_vector.split('#')[0]
                 full_name = href_vector.replace('//', '/').split('/')[3].split('.')[0]
@@ -119,7 +120,7 @@ class FreePik(BaseClass):
                 if result is not None:
                     continue
 
-                # Chcek try
+                # Chcek try Limit Download
                 if try_temp > try_count:
                     print("Try Done")
                     return
@@ -159,8 +160,23 @@ class FreePik(BaseClass):
                     print(ex)
                 all_tags_list = self.driver.find_elements(by=By.XPATH, value="//div[@style='grid-area:keywords']//ul//li//a")
                 file_tags = ''
+
+                # Seve Search Tags For Searching
+                os.chdir(f'search/')
+                if not os.path.exists(self.name):
+                    os.mkdir(self.name)
+                tags_save_search_file = {}
+                file_name_json = f'{self.name}/{self.name}_Vector.json'
+                with open(file_name_json) as json_file:
+                    tags_save_search_file = json.load(json_file)  # Dict
                 for tag in all_tags_list:
-                    file_tags = file_tags + str(tag.text.strip()) + ', '
+                    tag = tag.text.strip()
+                    if tag not in tags_save_search_file.keys():  # Check Exists Tag
+                        tags_save_search_file[tag] = 0
+                    file_tags = file_tags + str(tag) + ', '
+                with open(file_name_json, 'w') as outfile:
+                    json.dump(tags_save_search_file, outfile)  # Save To Json
+                os.chdir('../')
 
                 # Download Try
                 self.driver.find_element(by=By.XPATH, value='//button[@data-cy="wrapper-download-free"]').click()
@@ -304,9 +320,33 @@ class FreePik(BaseClass):
             self.driver.find_element(by=By.XPATH, value="//a[@title='Next Page']").click()
             # Wait To LOAD
             sleep(random.randint(5, 10))
-            vetors_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
-            if not vetors_page:
-                break
+            vectors_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
+            if not vectors_page:
+                file_name_json = f'{self.name}/{self.name}_Vector.json'
+                check_here = False
+                with open(file_name_json, 'w+') as json_file:
+                    tags_save_search_file = json.load(json_file)  # Dict
+                    for tag_here in tags_save_search_file.keys():
+                        if tags_save_search_file[tag_here] == 0:
+                            tags_save_search_file[tag_here] = 1
+                            if re.search(r'query=\w+', this_url) is not None:
+                                re.sub(r'query=\w+', 'query=hello', this_url)
+                            else:
+                                re.sub(r'last_filter=\w+', 'last_filter=query', this_url)
+                                re.sub(r'last_value=\w+', f'last_value={tag_here}', this_url)
+                                this_url = f"{this_url}&query={tag_here}"
+                            check_here = True
+                            break
+                if not check_here:
+                    print('No Scrapping File More!')
+                else:
+                    self.driver.get(this_url)
+                    # Wait To LOAD
+                    wait = WebDriverWait(self.driver, 10)
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                    vectors_page = self.driver.find_elements(by=By.XPATH,
+                                                             value='//figure[@data-cy="resource-thumbnail"]//a')
+                    json.dump(tags_save_search_file, json_file)  # Save To Json
 
     # Alone Scrapper (Vector Scrapper)
     def scrape_vector(self, url, account=False):
