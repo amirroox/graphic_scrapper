@@ -265,3 +265,5 @@ cython_debug/
 video
 test_main.http
 config/account_list.py
+test
+search

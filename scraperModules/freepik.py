@@ -1,6 +1,7 @@
 import json
 import random
 import re
+import zipfile
 
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -84,6 +85,7 @@ class FreePik(BaseClass):
         wait = WebDriverWait(self.driver, 30)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         vectors_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
+        vectors_page = [href.get_attribute('href') for href in vectors_page]
 
         # Check Folder
         os.chdir(f'{self.path_download}')
@@ -94,11 +96,12 @@ class FreePik(BaseClass):
         try_temp = 1
         while True:
             for vector in vectors_page:
-                href_vector = vector.get_attribute('href')
+                href_vector = vector
                 pure_href = href_vector.split('#')[0]
                 full_name = href_vector.replace('//', '/').split('/')[3].split('.')[0]
                 title_vector = full_name.split('_')[0].replace('-', ' ')
                 id_vector = full_name.split('_')[1]
+                new_file_path = None  # New Raname File
 
                 # Check Exist Element
                 self.db_cursor.execute("SELECT title FROM freepik_vectors WHERE title=%s", (title_vector,))
@@ -154,8 +157,13 @@ class FreePik(BaseClass):
                     os.mkdir(self.name)
                 tags_save_search_file = {}
                 file_name_json = f'{self.name}/{self.name}_Vector.json'
-                with open(file_name_json) as json_file:
-                    tags_save_search_file = json.load(json_file)  # Dict
+                if os.path.exists(file_name_json):
+                    with open(file_name_json, 'r') as json_file:
+                        tags_save_search_file = json.load(json_file)  # Dict
+                else:
+                    with open(file_name_json, 'w') as json_file:
+                        tags_save_search_file = {}
+                        json.dump(tags_save_search_file, json_file)
                 for tag in all_tags_list:
                     tag = tag.text.strip()
                     if tag not in tags_save_search_file.keys():  # Check Exists Tag
@@ -230,21 +238,22 @@ class FreePik(BaseClass):
                                             file_formats, file_size, file_license, file_tags))
                     self.db_connection.commit()
                     if 'jpg' not in list_pass:  # Download JPG (picodl.ir)
-                        img_jpg = self.driver.find_element(By=By.XPATH, value="//div[@class='_1286nb19f']//img")
+                        img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
                         href_img = img_jpg.get_attribute('src')
                         try:
-                            self.driver.get('https://picodl.ir')
+                            self.driver.get('https://picodl.com')
                             # Wait To LOAD
                             wait = WebDriverWait(self.driver, 5)
                             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                            self.driver.find_element(By=By.ID, value="image - url").send_keys(href_img)
-                            self.driver.find_element(By=By.ID, value="download-btn").click()
+                            sleep(15)
+                            self.driver.find_element(by=By.ID, value="image-url").send_keys(f'{href_img}?w=5000')
+                            self.driver.find_element(by=By.ID, value="download-btn").click()
                             # Wait To LOAD
                             wait = WebDriverWait(self.driver, 60)
                             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                             # Downlaod
                             before_download = os.listdir(self.path_download)
-                            self.driver.find_element(By=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
+                            self.driver.find_element(by=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
                             sleep(10)
                             after_download = os.listdir(self.path_download)
                             new_files = [f for f in after_download if f not in before_download]
@@ -276,6 +285,20 @@ class FreePik(BaseClass):
                         except Exception as ex:
                             print('JPG DOWNLOAD FAILED!')
                             print(ex)
+                            with zipfile.ZipFile(new_file_path, 'r') as fileZip:
+                                allFileInZip = fileZip.namelist()  # List
+                                for extFileHere in allFileInZip:
+                                    if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
+                                        oldJPG = fileZip.extract(extFileHere,
+                                                                 f'{self.path_download}/{self.name}/{full_name}')
+                                        new_file_path = os.path.join(self.path_download, self.name, full_name,
+                                                                     f'{full_name}.jpg')
+                                        os.replace(oldJPG, new_file_path)
+                                        self.db_cursor.execute(
+                                            "UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
+                                            (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                        self.db_connection.commit()
+                                        break
                     self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
                                            (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
                     if 'eps' in list_pass:
@@ -289,7 +312,7 @@ class FreePik(BaseClass):
                                                (f'{self.name}/{full_name}/{full_name}.svg', title_vector))
                     self.db_connection.commit()
                     try_temp += 1  # Check Try
-                except Exception as ex:
+                except Exception as ex:  # Just Zip File
                     # Zip File
                     print(ex)
                     # Downlaod
@@ -330,21 +353,22 @@ class FreePik(BaseClass):
                                            (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
                                             file_formats, file_size, file_license, file_tags))
                     self.db_connection.commit()
-                    img_jpg = self.driver.find_element(By=By.XPATH, value="//div[@class='_1286nb19f']//img")
+                    img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
                     href_img = img_jpg.get_attribute('src')
                     try:
-                        self.driver.get('https://picodl.ir')
+                        self.driver.get('https://picodl.com')
                         # Wait To LOAD
                         wait = WebDriverWait(self.driver, 5)
                         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                        self.driver.find_element(By=By.ID, value="image - url").send_keys(href_img)
-                        self.driver.find_element(By=By.ID, value="download-btn").click()
+                        sleep(15)
+                        self.driver.find_element(by=By.ID, value="image-url").send_keys(f'{href_img}?w=5000')
+                        self.driver.find_element(by=By.ID, value="download-btn").click()
                         # Wait To LOAD
                         wait = WebDriverWait(self.driver, 60)
                         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                         # Downlaod
                         before_download = os.listdir(self.path_download)
-                        self.driver.find_element(By=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
+                        self.driver.find_element(by=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
                         sleep(10)
                         after_download = os.listdir(self.path_download)
                         new_files = [f for f in after_download if f not in before_download]
@@ -380,9 +404,26 @@ class FreePik(BaseClass):
                     except Exception as ex:
                         print('JPG DOWNLOAD FAILED!')
                         print(ex)
+                        with zipfile.ZipFile(new_file_path, 'r') as fileZip:
+                            allFileInZip = fileZip.namelist()  # List
+                            for extFileHere in allFileInZip:
+                                if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
+                                    oldJPG = fileZip.extract(extFileHere,
+                                                             f'{self.path_download}/{self.name}/{full_name}')
+                                    new_file_path = os.path.join(self.path_download, self.name, full_name,
+                                                                 f'{full_name}.jpg')
+                                    os.replace(oldJPG, new_file_path)
+                                    self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
+                                                           (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                    self.db_connection.commit()
+                                    break
+            self.driver.get(this_url)
+            # Wait To LOAD
+            wait = WebDriverWait(self.driver, 30)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             self.driver.find_element(by=By.XPATH, value="//a[@title='Next Page']").click()
             # Wait To LOAD
-            sleep(random.randint(5, 10))
+            sleep(random.randint(10, 20))
             vectors_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
             if not vectors_page:
                 file_name_json = f'{self.name}/{self.name}_Vector.json'
@@ -437,6 +478,7 @@ class FreePik(BaseClass):
         full_name = href_vector.replace('//', '/').split('/')[3].split('.')[0]
         title_vector = full_name.split('_')[0].replace('-', ' ')
         id_vector = full_name.split('_')[1]
+        new_file_path = None  # New Raname File
 
         os.chdir(f'{self.path_download}/{self.name}')
         if not os.path.exists(full_name):
@@ -535,21 +577,22 @@ class FreePik(BaseClass):
                                     file_formats, file_size, file_license, file_tags))
             self.db_connection.commit()
             if 'jpg' not in list_pass:  # Download JPG (picodl.ir)
-                img_jpg = self.driver.find_element(By=By.XPATH, value="//div[@class='_1286nb19f']//img")
+                img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
                 href_img = img_jpg.get_attribute('src')
                 try:
-                    self.driver.get('https://picodl.ir')
+                    self.driver.get('https://picodl.com')
                     # Wait To LOAD
                     wait = WebDriverWait(self.driver, 5)
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                    self.driver.find_element(By=By.ID, value="image - url").send_keys(href_img)
-                    self.driver.find_element(By=By.ID, value="download-btn").click()
+                    sleep(15)
+                    self.driver.find_element(by=By.ID, value="image-url").send_keys(f'{href_img}?w=5000')
+                    self.driver.find_element(by=By.ID, value="download-btn").click()
                     # Wait To LOAD
                     wait = WebDriverWait(self.driver, 60)
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     # Downlaod
                     before_download = os.listdir(self.path_download)
-                    self.driver.find_element(By=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
+                    self.driver.find_element(by=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
                     sleep(10)
                     after_download = os.listdir(self.path_download)
                     new_files = [f for f in after_download if f not in before_download]
@@ -581,6 +624,19 @@ class FreePik(BaseClass):
                 except Exception as ex:
                     print('JPG DOWNLOAD FAILED!')
                     print(ex)
+                    with zipfile.ZipFile(new_file_path, 'r') as fileZip:
+                        allFileInZip = fileZip.namelist()  # List
+                        for extFileHere in allFileInZip:
+                            if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
+                                oldJPG = fileZip.extract(extFileHere,
+                                                         f'{self.path_download}/{self.name}/{full_name}')
+                                new_file_path = os.path.join(self.path_download, self.name, full_name,
+                                                             f'{full_name}.jpg')
+                                os.replace(oldJPG, new_file_path)
+                                self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
+                                                       (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                self.db_connection.commit()
+                                break
             self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
                                    (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
             if 'eps' in list_pass:
@@ -638,21 +694,22 @@ class FreePik(BaseClass):
                                    (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
                                     file_formats, file_size, file_license, file_tags))
             self.db_connection.commit()
-            img_jpg = self.driver.find_element(By=By.XPATH, value="//div[@class='_1286nb19f']//img")
+            img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
             href_img = img_jpg.get_attribute('src')
             try:
-                self.driver.get('https://picodl.ir')
+                self.driver.get('https://picodl.com')
                 # Wait To LOAD
                 wait = WebDriverWait(self.driver, 5)
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                self.driver.find_element(By=By.ID, value="image - url").send_keys(href_img)
-                self.driver.find_element(By=By.ID, value="download-btn").click()
+                sleep(15)
+                self.driver.find_element(by=By.ID, value="image-url").send_keys(f'{href_img}?w=5000')
+                self.driver.find_element(by=By.ID, value="download-btn").click()
                 # Wait To LOAD
                 wait = WebDriverWait(self.driver, 60)
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                 # Downlaod
                 before_download = os.listdir(self.path_download)
-                self.driver.find_element(By=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
+                self.driver.find_element(by=By.XPATH, value="//div[@class='card-body']//a[@download]").click()
                 sleep(10)
                 after_download = os.listdir(self.path_download)
                 new_files = [f for f in after_download if f not in before_download]
@@ -687,6 +744,19 @@ class FreePik(BaseClass):
             except Exception as ex:
                 print('JPG DOWNLOAD FAILED!')
                 print(ex)
+                with zipfile.ZipFile(new_file_path, 'r') as fileZip:
+                    allFileInZip = fileZip.namelist()  # List
+                    for extFileHere in allFileInZip:
+                        if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
+                            oldJPG = fileZip.extract(extFileHere,
+                                                     f'{self.path_download}/{self.name}/{full_name}')
+                            new_file_path = os.path.join(self.path_download, self.name, full_name,
+                                                         f'{full_name}.jpg')
+                            os.replace(oldJPG, new_file_path)
+                            self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
+                                                   (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                            self.db_connection.commit()
+                            break
             # Fetch Result
             self.db_cursor.execute("SELECT * FROM freepik_vectors WHERE title = %s", (title_vector,))
             result = self.db_cursor.fetchone()
