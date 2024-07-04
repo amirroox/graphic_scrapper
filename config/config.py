@@ -7,3 +7,9 @@ DATABASE_CONFIG = {
     'password': '',
     'database': 'scrapping_graphic',
 }
+
+FTP_CONFIG = {
+    'host': 'ftp.test.com',
+    'user': 'testUser',
+    'password': 'TestPass',
+}

@@ -1,14 +1,22 @@
 from mysql.connector.abstracts import MySQLCursorAbstract
+from selenium.webdriver.support.wait import WebDriverWait
 
 from config import config
 import os
 from selenium import webdriver
 import mysql.connector
+import ftplib
+
+
+# Connect To FTP
+def connect_ftp(host=config.FTP_CONFIG['host'], user=config.FTP_CONFIG['user'],
+                password=config.FTP_CONFIG['password']):
+    return ftplib.FTP(host, user, password)  # return FTP Session
 
 
 class BaseClass:
     # inital
-    def __init__(self, timeout=config.TIMEOUT_SLEEP, AD_BLOCKER=True):
+    def __init__(self, timeout=config.TIMEOUT_SLEEP, AD_BLOCKER=True, ftp_send=True):
         self.name = None
         self.db_cursor: MySQLCursorAbstract | None = None
         self.db_connection = None
@@ -19,7 +27,24 @@ class BaseClass:
         self.timeout_sleep = timeout
         self.driver = None
         self.ad_blocker = AD_BLOCKER
+        self.ftp = None
+        if ftp_send:
+            self.ftp = connect_ftp()
         self.connect_database()
+
+    # Def Driver Open
+    def _initial_open(self):
+        self.driver = self.setup_driver()
+        self.driver.get('https://google.com')
+        # Wait To LOAD
+        wait = WebDriverWait(self.driver, 30)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        if self.ad_blocker:
+            # Switch To AdBlocker
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            self.driver.close()
+            # Switch To Main Tab
+            self.driver.switch_to.window(self.driver.window_handles[0])
 
     # Initial Setup Driver
     def setup_driver(self):
@@ -60,3 +85,8 @@ class BaseClass:
     # Close Driver
     def close_driver(self):
         self.driver.close()
+
+    # Clsoe FTP
+    def close_fpt(self):
+        if self.ftp is not None:
+            self.ftp.close()
