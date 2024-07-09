@@ -63,6 +63,7 @@ class FreePik(BaseClass):
     # Main Scrapper (Vector Scrapper)
     def scrape_vectors(self, url="https://www.freepik.com/search?format=search&type=vector",
                        query=None, account=False, premium=False):
+        nameSub = 'Vector'
         self._initial_open()  # Open
         try_count = 3  # Default Try
         if query:
@@ -91,7 +92,10 @@ class FreePik(BaseClass):
         os.chdir(f'{self.path_download}')
         if not os.path.exists(self.name):
             os.mkdir(self.name)
-        os.chdir('../')
+        os.chdir(self.name)
+        if not os.path.exists(nameSub):
+            os.mkdir(nameSub)
+        os.chdir('../../')
 
         try_temp = 1
         while True:
@@ -123,10 +127,10 @@ class FreePik(BaseClass):
                 # Scroll 200px Bottom
                 self.driver.execute_script("window.scrollBy(0, 200);")
 
-                os.chdir(f'{self.path_download}/{self.name}')
+                os.chdir(f'{self.path_download}/{self.name}/{nameSub}')
                 if not os.path.exists(full_name):
                     os.mkdir(full_name)
-                os.chdir('../../')
+                os.chdir('../../../')
 
                 # Details
                 try:  # File
@@ -206,10 +210,11 @@ class FreePik(BaseClass):
                                     if os.path.isfile(full_path):
                                         # file_extension = os.path.splitext(filename)[1]
                                         new_filename = f"{full_name}.{formating}"
-                                        new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                                        new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                                     full_name, new_filename)
                                         os.replace(full_path, new_file_path)
                                         if self.ftp is not None:
-                                            upload_to_host(self, full_name, new_file_path, new_filename)
+                                            upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                                 break
                             except Exception as ex:  # For Complate Download
                                 print(ex)
@@ -217,7 +222,8 @@ class FreePik(BaseClass):
                         list_pass.append(str(formating))
                     self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
                                            "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                                           (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
+                                           (title_vector, pure_href,
+                                            f'{self.name}/{nameSub}/{full_name}/{full_name}.zip',
                                             file_formats, file_size, file_license, file_tags))
                     self.db_connection.commit()
                     if 'jpg' not in list_pass:  # Download JPG (picodl.ir)
@@ -244,10 +250,11 @@ class FreePik(BaseClass):
                                 full_path = os.path.join(self.path_download, new_files[0])
                                 if os.path.isfile(full_path):
                                     new_filename = f"{full_name}.jpg"
-                                    new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                                    new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                                 full_name, new_filename)
                                     os.replace(full_path, new_file_path)
                                     if self.ftp is not None:
-                                        upload_to_host(self, full_name, new_file_path, new_filename)
+                                        upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                         except Exception as ex:
                             print('JPG DOWNLOAD FAILED!')
                             print(ex)
@@ -256,26 +263,26 @@ class FreePik(BaseClass):
                                 for extFileHere in allFileInZip:
                                     if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
                                         oldJPG = fileZip.extract(extFileHere,
-                                                                 f'{self.path_download}/{self.name}/{full_name}')
-                                        new_file_path = os.path.join(self.path_download, self.name, full_name,
-                                                                     f'{full_name}.jpg')
+                                                                 f'{self.path_download}/{self.name}/{nameSub}/{full_name}')
+                                        new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                                     full_name, f'{full_name}.jpg')
                                         os.replace(oldJPG, new_file_path)
                                         self.db_cursor.execute(
                                             "UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                            (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                            (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg', title_vector))
                                         self.db_connection.commit()
                                         break
                     self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                           (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                           (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg', title_vector))
                     if 'eps' in list_pass:
                         self.db_cursor.execute("UPDATE freepik_vectors SET path_eps = %s WHERE title = %s",
-                                               (f'{self.name}/{full_name}/{full_name}.eps', title_vector))
+                                               (f'{self.name}/{nameSub}/{full_name}/{full_name}.eps', title_vector))
                     if 'ai' in list_pass:
                         self.db_cursor.execute("UPDATE freepik_vectors SET path_ai = %s WHERE title = %s",
-                                               (f'{self.name}/{full_name}/{full_name}.ai', title_vector))
+                                               (f'{self.name}/{nameSub}/{full_name}/{full_name}.ai', title_vector))
                     if 'svg' in list_pass:
                         self.db_cursor.execute("UPDATE freepik_vectors SET path_svg = %s WHERE title = %s",
-                                               (f'{self.name}/{full_name}/{full_name}.svg', title_vector))
+                                               (f'{self.name}/{nameSub}/{full_name}/{full_name}.svg', title_vector))
                     self.db_connection.commit()
                     try_temp += 1  # Check Try
                 except Exception as ex:  # Just Zip File
@@ -293,13 +300,15 @@ class FreePik(BaseClass):
                         if os.path.isfile(full_path):
                             # file_extension = os.path.splitext(filename)[1]
                             new_filename = f"{full_name}.zip"
-                            new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                            new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                         full_name, new_filename)
                             os.replace(full_path, new_file_path)
                             if self.ftp is not None:
-                                upload_to_host(self, full_name, new_file_path, new_filename)
+                                upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                     self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
                                            "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                                           (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
+                                           (title_vector, pure_href,
+                                            f'{self.name}/{nameSub}/{full_name}/{full_name}.zip',
                                             file_formats, file_size, file_license, file_tags))
                     self.db_connection.commit()
                     img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
@@ -325,12 +334,13 @@ class FreePik(BaseClass):
                             full_path = os.path.join(self.path_download, new_files[0])
                             if os.path.isfile(full_path):
                                 new_filename = f"{full_name}.jpg"
-                                new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                                new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                             full_name, new_filename)
                                 os.replace(full_path, new_file_path)
                                 if self.ftp is not None:
-                                    upload_to_host(self, full_name, new_file_path, new_filename)
+                                    upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                         self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                               (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                               (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg', title_vector))
                         self.db_connection.commit()
                         try_temp += 1  # Check Try
                     except Exception as ex:
@@ -341,12 +351,12 @@ class FreePik(BaseClass):
                             for extFileHere in allFileInZip:
                                 if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
                                     oldJPG = fileZip.extract(extFileHere,
-                                                             f'{self.path_download}/{self.name}/{full_name}')
-                                    new_file_path = os.path.join(self.path_download, self.name, full_name,
-                                                                 f'{full_name}.jpg')
+                                                             f'{self.path_download}/{self.name}/{nameSub}/{full_name}')
+                                    new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                                 full_name, f'{full_name}.jpg')
                                     os.replace(oldJPG, new_file_path)
                                     self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                                           (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                                           (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg', title_vector))
                                     self.db_connection.commit()
                                     break
             self.driver.get(this_url)
@@ -358,6 +368,7 @@ class FreePik(BaseClass):
             sleep(random.randint(10, 20))
             vectors_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
             if not vectors_page:
+                os.chdir(f'search/')
                 file_name_json = f'{self.name}/{self.name}_Vector.json'
                 check_here = False
                 with open(file_name_json, 'w+') as json_file:
@@ -383,9 +394,11 @@ class FreePik(BaseClass):
                     vectors_page = self.driver.find_elements(by=By.XPATH,
                                                              value='//figure[@data-cy="resource-thumbnail"]//a')
                     json.dump(tags_save_search_file, json_file)  # Save To Json
+                os.chdir(f'../')
 
     # Alone Scrapper (Vector Scrapper)
     def scrape_vector(self, url, account=False):
+        nameSub = 'Vector'
         self._initial_open()  # Open
 
         if account:  # Sign In
@@ -395,7 +408,10 @@ class FreePik(BaseClass):
         os.chdir(f'{self.path_download}')
         if not os.path.exists(self.name):
             os.mkdir(self.name)
-        os.chdir('../')
+        os.chdir(self.name)
+        if not os.path.exists(nameSub):
+            os.mkdir(nameSub)
+        os.chdir('../../')
 
         # Open Vector
         self.driver.get(url)
@@ -412,10 +428,10 @@ class FreePik(BaseClass):
         id_vector = full_name.split('_')[1]
         new_file_path = None  # New Raname File
 
-        os.chdir(f'{self.path_download}/{self.name}')
+        os.chdir(f'{self.path_download}/{self.name}/{nameSub}')
         if not os.path.exists(full_name):
             os.mkdir(full_name)
-        os.chdir('../../')
+        os.chdir('../../..')
 
         # Details
         try:  # File
@@ -477,10 +493,11 @@ class FreePik(BaseClass):
                             if os.path.isfile(full_path):
                                 # file_extension = os.path.splitext(filename)[1]
                                 new_filename = f"{full_name}.{formating}"
-                                new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                                new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                             full_name, new_filename)
                                 os.replace(full_path, new_file_path)
                                 if self.ftp is not None:
-                                    upload_to_host(self, full_name, new_file_path, new_filename)
+                                    upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                         break
                     except Exception as ex:  # For Complate Download
                         print(ex)
@@ -488,7 +505,7 @@ class FreePik(BaseClass):
                 list_pass.append(str(formating))
             self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
                                    "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                                   (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
+                                   (title_vector, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.zip',
                                     file_formats, file_size, file_license, file_tags))
             self.db_connection.commit()
             if 'jpg' not in list_pass:  # Download JPG (picodl.ir)
@@ -515,10 +532,11 @@ class FreePik(BaseClass):
                         full_path = os.path.join(self.path_download, new_files[0])
                         if os.path.isfile(full_path):
                             new_filename = f"{full_name}.jpg"
-                            new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                            new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                         full_name, new_filename)
                             os.replace(full_path, new_file_path)
                             if self.ftp is not None:
-                                upload_to_host(self, full_name, new_file_path, new_filename)
+                                upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                 except Exception as ex:
                     print('JPG DOWNLOAD FAILED!')
                     print(ex)
@@ -527,25 +545,26 @@ class FreePik(BaseClass):
                         for extFileHere in allFileInZip:
                             if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
                                 oldJPG = fileZip.extract(extFileHere,
-                                                         f'{self.path_download}/{self.name}/{full_name}')
-                                new_file_path = os.path.join(self.path_download, self.name, full_name,
+                                                         f'{self.path_download}/{self.name}/{nameSub}/{full_name}')
+                                new_file_path = os.path.join(self.path_download, self.name, nameSub, full_name,
                                                              f'{full_name}.jpg')
                                 os.replace(oldJPG, new_file_path)
                                 self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                                       (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                                       (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
+                                                        title_vector))
                                 self.db_connection.commit()
                                 break
             self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                   (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                   (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg', title_vector))
             if 'eps' in list_pass:
                 self.db_cursor.execute("UPDATE freepik_vectors SET path_eps = %s WHERE title = %s",
-                                       (f'{self.name}/{full_name}/{full_name}.eps', title_vector))
+                                       (f'{self.name}/{nameSub}/{full_name}/{full_name}.eps', title_vector))
             if 'ai' in list_pass:
                 self.db_cursor.execute("UPDATE freepik_vectors SET path_ai = %s WHERE title = %s",
-                                       (f'{self.name}/{full_name}/{full_name}.ai', title_vector))
+                                       (f'{self.name}/{nameSub}/{full_name}/{full_name}.ai', title_vector))
             if 'svg' in list_pass:
                 self.db_cursor.execute("UPDATE freepik_vectors SET path_svg = %s WHERE title = %s",
-                                       (f'{self.name}/{full_name}/{full_name}.svg', title_vector))
+                                       (f'{self.name}/{nameSub}/{full_name}/{full_name}.svg', title_vector))
             self.db_connection.commit()
             # Fetch Result
             self.db_cursor.execute("SELECT * FROM freepik_vectors WHERE title = %s", (title_vector,))
@@ -566,13 +585,13 @@ class FreePik(BaseClass):
                 if os.path.isfile(full_path):
                     # file_extension = os.path.splitext(filename)[1]
                     new_filename = f"{full_name}.zip"
-                    new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                    new_file_path = os.path.join(self.path_download, self.name, nameSub, full_name, new_filename)
                     os.replace(full_path, new_file_path)
                     if self.ftp is not None:
-                        upload_to_host(self, full_name, new_file_path, new_filename)
+                        upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
             self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
                                    "VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                                   (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
+                                   (title_vector, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.zip',
                                     file_formats, file_size, file_license, file_tags))
             self.db_connection.commit()
             img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
@@ -598,12 +617,12 @@ class FreePik(BaseClass):
                     full_path = os.path.join(self.path_download, new_files[0])
                     if os.path.isfile(full_path):
                         new_filename = f"{full_name}.jpg"
-                        new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
+                        new_file_path = os.path.join(self.path_download, self.name, nameSub, full_name, new_filename)
                         os.replace(full_path, new_file_path)
                         if self.ftp is not None:
-                            upload_to_host(self, full_name, new_file_path, new_filename)
+                            upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                 self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                       (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                       (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg', title_vector))
                 self.db_connection.commit()
             except Exception as ex:
                 print('JPG DOWNLOAD FAILED!')
@@ -613,12 +632,13 @@ class FreePik(BaseClass):
                     for extFileHere in allFileInZip:
                         if re.fullmatch(f'\w+\.(jpg|png)', extFileHere):
                             oldJPG = fileZip.extract(extFileHere,
-                                                     f'{self.path_download}/{self.name}/{full_name}')
-                            new_file_path = os.path.join(self.path_download, self.name, full_name,
+                                                     f'{self.path_download}/{self.name}/{nameSub}/{full_name}')
+                            new_file_path = os.path.join(self.path_download, self.name, nameSub, full_name,
                                                          f'{full_name}.jpg')
                             os.replace(oldJPG, new_file_path)
                             self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
-                                                   (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
+                                                   (f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
+                                                    title_vector))
                             self.db_connection.commit()
                             break
             # Fetch Result
@@ -674,7 +694,7 @@ class FreePik(BaseClass):
 
 
 # Upload To Ftp
-def upload_to_host(self: FreePik, full_name, new_file_path, new_filename):
+def upload_to_host(self: FreePik, nameSub, full_name, new_file_path, new_filename):
     try:
         try:
             self.ftp.cwd(self.name)
@@ -682,6 +702,12 @@ def upload_to_host(self: FreePik, full_name, new_file_path, new_filename):
             print(ex)
             self.ftp.mkd(self.name)
             self.ftp.cwd(self.name)
+        try:
+            self.ftp.cwd(nameSub)
+        except Exception as ex:
+            print(ex)
+            self.ftp.mkd(nameSub)
+            self.ftp.cwd(nameSub)
         try:
             self.ftp.cwd(full_name)
         except Exception as ex:
