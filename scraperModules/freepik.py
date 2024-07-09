@@ -209,24 +209,7 @@ class FreePik(BaseClass):
                                         new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                                         os.replace(full_path, new_file_path)
                                         if self.ftp is not None:
-                                            try:
-                                                try:
-                                                    self.ftp.cwd(self.name)
-                                                except Exception as ex:
-                                                    print(ex)
-                                                    self.ftp.mkd(self.name)
-                                                    self.ftp.cwd(self.name)
-                                                try:
-                                                    self.ftp.cwd(full_name)
-                                                except Exception as ex:
-                                                    print(ex)
-                                                    self.ftp.mkd(full_name)
-                                                    self.ftp.cwd(full_name)
-                                                with open(new_file_path, 'rb') as file:
-                                                    self.ftp.storbinary(f'STOR {new_filename}', file)
-                                            except Exception as ex:
-                                                print(f'FTP Error\n{ex}')
-                                            self.close_fpt()
+                                            upload_to_host(self, full_name, new_file_path, new_filename)
                                 break
                             except Exception as ex:  # For Complate Download
                                 print(ex)
@@ -264,24 +247,7 @@ class FreePik(BaseClass):
                                     new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                                     os.replace(full_path, new_file_path)
                                     if self.ftp is not None:
-                                        try:
-                                            try:
-                                                self.ftp.cwd(self.name)
-                                            except Exception as ex:
-                                                print(ex)
-                                                self.ftp.mkd(self.name)
-                                                self.ftp.cwd(self.name)
-                                            try:
-                                                self.ftp.cwd(full_name)
-                                            except Exception as ex:
-                                                print(ex)
-                                                self.ftp.mkd(full_name)
-                                                self.ftp.cwd(full_name)
-                                            with open(new_file_path, 'rb') as file:
-                                                self.ftp.storbinary(f'STOR {new_filename}', file)
-                                        except Exception as ex:
-                                            print(f'FTP Error\n{ex}')
-                                        self.close_fpt()
+                                        upload_to_host(self, full_name, new_file_path, new_filename)
                         except Exception as ex:
                             print('JPG DOWNLOAD FAILED!')
                             print(ex)
@@ -330,24 +296,7 @@ class FreePik(BaseClass):
                             new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                             os.replace(full_path, new_file_path)
                             if self.ftp is not None:
-                                try:
-                                    try:
-                                        self.ftp.cwd(self.name)
-                                    except Exception as ex:
-                                        print(ex)
-                                        self.ftp.mkd(self.name)
-                                        self.ftp.cwd(self.name)
-                                    try:
-                                        self.ftp.cwd(full_name)
-                                    except Exception as ex:
-                                        print(ex)
-                                        self.ftp.mkd(full_name)
-                                        self.ftp.cwd(full_name)
-                                    with open(new_file_path, 'rb') as file:
-                                        self.ftp.storbinary(f'STOR {new_filename}', file)
-                                except Exception as ex:
-                                    print(f'FTP Error\n{ex}')
-                                self.close_fpt()
+                                upload_to_host(self, full_name, new_file_path, new_filename)
                     self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
                                            "VALUES (%s, %s, %s, %s, %s, %s, %s)",
                                            (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
@@ -379,24 +328,7 @@ class FreePik(BaseClass):
                                 new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                                 os.replace(full_path, new_file_path)
                                 if self.ftp is not None:
-                                    try:
-                                        try:
-                                            self.ftp.cwd(self.name)
-                                        except Exception as ex:
-                                            print(ex)
-                                            self.ftp.mkd(self.name)
-                                            self.ftp.cwd(self.name)
-                                        try:
-                                            self.ftp.cwd(full_name)
-                                        except Exception as ex:
-                                            print(ex)
-                                            self.ftp.mkd(full_name)
-                                            self.ftp.cwd(full_name)
-                                        with open(new_file_path, 'rb') as file:
-                                            self.ftp.storbinary(f'STOR {new_filename}', file)
-                                    except Exception as ex:
-                                        print(f'FTP Error\n{ex}')
-                                    self.close_fpt()
+                                    upload_to_host(self, full_name, new_file_path, new_filename)
                         self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
                                                (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
                         self.db_connection.commit()
@@ -548,24 +480,7 @@ class FreePik(BaseClass):
                                 new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                                 os.replace(full_path, new_file_path)
                                 if self.ftp is not None:
-                                    try:
-                                        try:
-                                            self.ftp.cwd(self.name)
-                                        except Exception as ex:
-                                            print(ex)
-                                            self.ftp.mkd(self.name)
-                                            self.ftp.cwd(self.name)
-                                        try:
-                                            self.ftp.cwd(full_name)
-                                        except Exception as ex:
-                                            print(ex)
-                                            self.ftp.mkd(full_name)
-                                            self.ftp.cwd(full_name)
-                                        with open(new_file_path, 'rb') as file:
-                                            self.ftp.storbinary(f'STOR {new_filename}', file)
-                                    except Exception as ex:
-                                        print(f'FTP Error\n{ex}')
-                                    self.close_fpt()
+                                    upload_to_host(self, full_name, new_file_path, new_filename)
                         break
                     except Exception as ex:  # For Complate Download
                         print(ex)
@@ -603,24 +518,7 @@ class FreePik(BaseClass):
                             new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                             os.replace(full_path, new_file_path)
                             if self.ftp is not None:
-                                try:
-                                    try:
-                                        self.ftp.cwd(self.name)
-                                    except Exception as ex:
-                                        print(ex)
-                                        self.ftp.mkd(self.name)
-                                        self.ftp.cwd(self.name)
-                                    try:
-                                        self.ftp.cwd(full_name)
-                                    except Exception as ex:
-                                        print(ex)
-                                        self.ftp.mkd(full_name)
-                                        self.ftp.cwd(full_name)
-                                    with open(new_file_path, 'rb') as file:
-                                        self.ftp.storbinary(f'STOR {new_filename}', file)
-                                except Exception as ex:
-                                    print(f'FTP Error\n{ex}')
-                                self.close_fpt()
+                                upload_to_host(self, full_name, new_file_path, new_filename)
                 except Exception as ex:
                     print('JPG DOWNLOAD FAILED!')
                     print(ex)
@@ -671,24 +569,7 @@ class FreePik(BaseClass):
                     new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                     os.replace(full_path, new_file_path)
                     if self.ftp is not None:
-                        try:
-                            try:
-                                self.ftp.cwd(self.name)
-                            except Exception as ex:
-                                print(ex)
-                                self.ftp.mkd(self.name)
-                                self.ftp.cwd(self.name)
-                            try:
-                                self.ftp.cwd(full_name)
-                            except Exception as ex:
-                                print(ex)
-                                self.ftp.mkd(full_name)
-                                self.ftp.cwd(full_name)
-                            with open(new_file_path, 'rb') as file:
-                                self.ftp.storbinary(f'STOR {new_filename}', file)
-                        except Exception as ex:
-                            print(f'FTP Error\n{ex}')
-                        self.close_fpt()
+                        upload_to_host(self, full_name, new_file_path, new_filename)
             self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
                                    "VALUES (%s, %s, %s, %s, %s, %s, %s)",
                                    (title_vector, pure_href, f'{self.name}/{full_name}/{full_name}.zip',
@@ -720,24 +601,7 @@ class FreePik(BaseClass):
                         new_file_path = os.path.join(self.path_download, self.name, full_name, new_filename)
                         os.replace(full_path, new_file_path)
                         if self.ftp is not None:
-                            try:
-                                try:
-                                    self.ftp.cwd(self.name)
-                                except Exception as ex:
-                                    print(ex)
-                                    self.ftp.mkd(self.name)
-                                    self.ftp.cwd(self.name)
-                                try:
-                                    self.ftp.cwd(full_name)
-                                except Exception as ex:
-                                    print(ex)
-                                    self.ftp.mkd(full_name)
-                                    self.ftp.cwd(full_name)
-                                with open(new_file_path, 'rb') as file:
-                                    self.ftp.storbinary(f'STOR {new_filename}', file)
-                            except Exception as ex:
-                                print(f'FTP Error\n{ex}')
-                            self.close_fpt()
+                            upload_to_host(self, full_name, new_file_path, new_filename)
                 self.db_cursor.execute("UPDATE freepik_vectors SET path_jpg = %s WHERE title = %s",
                                        (f'{self.name}/{full_name}/{full_name}.jpg', title_vector))
                 self.db_connection.commit()
@@ -807,3 +671,25 @@ class FreePik(BaseClass):
         return result if result else False
 
     # ---------- Vector FreePic ----------
+
+
+# Upload To Ftp
+def upload_to_host(self: FreePik, full_name, new_file_path, new_filename):
+    try:
+        try:
+            self.ftp.cwd(self.name)
+        except Exception as ex:
+            print(ex)
+            self.ftp.mkd(self.name)
+            self.ftp.cwd(self.name)
+        try:
+            self.ftp.cwd(full_name)
+        except Exception as ex:
+            print(ex)
+            self.ftp.mkd(full_name)
+            self.ftp.cwd(full_name)
+        with open(new_file_path, 'rb') as file:
+            self.ftp.storbinary(f'STOR {new_filename}', file)
+    except Exception as ex:
+        print(f'FTP Error\n{ex}')
+    self.close_fpt()
