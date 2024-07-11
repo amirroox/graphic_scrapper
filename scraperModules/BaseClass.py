@@ -1,4 +1,6 @@
-from mysql.connector.abstracts import MySQLCursorAbstract
+from mysql.connector.abstracts import MySQLCursorAbstract, MySQLConnectionAbstract
+from mysql.connector.pooling import PooledMySQLConnection
+from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
 
 from config import config
@@ -19,13 +21,13 @@ class BaseClass:
     def __init__(self, timeout=config.TIMEOUT_SLEEP, AD_BLOCKER=True, ftp_send=True):
         self.name = None
         self.db_cursor: MySQLCursorAbstract | None = None
-        self.db_connection = None
+        self.db_connection: PooledMySQLConnection | MySQLConnectionAbstract | None = None
         self.database_username = config.DATABASE_CONFIG["username"]
         self.database_password = config.DATABASE_CONFIG["password"]
         self.database_name = config.DATABASE_CONFIG["database"]
         self.path_download = os.path.abspath(config.PATH_DOWNLOAD)
-        self.timeout_sleep = timeout
-        self.driver = None
+        self.timeout_sleep: int | float = timeout
+        self.driver: WebDriver | None = None
         self.ad_blocker = AD_BLOCKER
         self.ftp = None
         if ftp_send:
