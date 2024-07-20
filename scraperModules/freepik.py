@@ -1,6 +1,7 @@
 import json
 import random
 import re
+import shutil
 import zipfile
 
 from selenium.webdriver.support.wait import WebDriverWait
@@ -213,6 +214,22 @@ class FreePik(BaseClass):
                                         new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
                                                                      full_name, new_filename)
                                         os.replace(full_path, new_file_path)
+                                        if formating == 'zip':  # Check .txt File in Zip
+                                            txtInZip = False
+                                            with zipfile.ZipFile(new_file_path, 'r') as file:
+                                                allFile = file.namelist()  # List File
+                                                if '.txt' in allFile:
+                                                    txtInZip = True
+                                                    for extFile in allFile:
+                                                        if not re.fullmatch(f'.+\.txt', extFile):
+                                                            inZip = file.extract(extFile, path=f'{new_file_path}Folder')
+                                            if txtInZip:
+                                                with zipfile.ZipFile(new_file_path, 'w') as new_zip:
+                                                    for folder_name, subfolders, filenames in os.walk(f'{new_file_path}Folder'):
+                                                        for filename in filenames:
+                                                            file_path = os.path.join(folder_name, filename)
+                                                            new_zip.write(file_path, os.path.relpath(file_path, f'{new_file_path}Folder'))
+                                                shutil.rmtree(f'{new_file_path}Folder')
                                         if self.ftp is not None:
                                             upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                                 break
@@ -303,6 +320,22 @@ class FreePik(BaseClass):
                             new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
                                                          full_name, new_filename)
                             os.replace(full_path, new_file_path)
+                            txtInZip = False
+                            with zipfile.ZipFile(new_file_path, 'r') as file:
+                                allFile = file.namelist()  # List File
+                                if '.txt' in allFile:
+                                    txtInZip = True
+                                    for extFile in allFile:
+                                        if not re.fullmatch(f'.+\.txt', extFile):
+                                            inZip = file.extract(extFile, path=f'{new_file_path}Folder')
+                            if txtInZip:
+                                with zipfile.ZipFile(new_file_path, 'w') as new_zip:
+                                    for folder_name, subfolders, filenames in os.walk(f'{new_file_path}Folder'):
+                                        for filename in filenames:
+                                            file_path = os.path.join(folder_name, filename)
+                                            new_zip.write(file_path,
+                                                          os.path.relpath(file_path, f'{new_file_path}Folder'))
+                                shutil.rmtree(f'{new_file_path}Folder')
                             if self.ftp is not None:
                                 upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                     self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
@@ -497,6 +530,23 @@ class FreePik(BaseClass):
                                 new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
                                                              full_name, new_filename)
                                 os.replace(full_path, new_file_path)
+                                if formating == 'zip':  # Check .txt File in Zip
+                                    txtInZip = False
+                                    with zipfile.ZipFile(new_file_path, 'r') as file:
+                                        allFile = file.namelist()  # List File
+                                        if '.txt' in allFile:
+                                            txtInZip = True
+                                            for extFile in allFile:
+                                                if not re.fullmatch(f'.+\.txt', extFile):
+                                                    inZip = file.extract(extFile, path=f'{new_file_path}Folder')
+                                    if txtInZip:
+                                        with zipfile.ZipFile(new_file_path, 'w') as new_zip:
+                                            for folder_name, subfolders, filenames in os.walk(f'{new_file_path}Folder'):
+                                                for filename in filenames:
+                                                    file_path = os.path.join(folder_name, filename)
+                                                    new_zip.write(file_path,
+                                                                  os.path.relpath(file_path, f'{new_file_path}Folder'))
+                                        shutil.rmtree(f'{new_file_path}Folder')
                                 if self.ftp is not None:
                                     upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
                         break
@@ -588,6 +638,21 @@ class FreePik(BaseClass):
                     new_filename = f"{full_name}.zip"
                     new_file_path = os.path.join(self.path_download, self.name, nameSub, full_name, new_filename)
                     os.replace(full_path, new_file_path)
+                    txtInZip = False
+                    with zipfile.ZipFile(new_file_path, 'r') as file:
+                        allFile = file.namelist()  # List File
+                        if '.txt' in allFile:
+                            txtInZip = True
+                            for extFile in allFile:
+                                if not re.fullmatch(f'.+\.txt', extFile):
+                                    inZip = file.extract(extFile, path=f'{new_file_path}Folder')
+                    if txtInZip:
+                        with zipfile.ZipFile(new_file_path, 'w') as new_zip:
+                            for folder_name, subfolders, filenames in os.walk(f'{new_file_path}Folder'):
+                                for filename in filenames:
+                                    file_path = os.path.join(folder_name, filename)
+                                    new_zip.write(file_path, os.path.relpath(file_path, f'{new_file_path}Folder'))
+                        shutil.rmtree(f'{new_file_path}Folder')
                     if self.ftp is not None:
                         upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
             self.db_cursor.execute("INSERT INTO freepik_vectors (title, link, path_zip, formats, size, license, tags) "
@@ -848,6 +913,7 @@ class FreePik(BaseClass):
                                 os.replace(full_path, new_file_path)
                                 if self.ftp is not None:
                                     upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
+                                # TODO Resize Image For Temp
                         break
                     except Exception as ex:  # For Complate Download
                         print(ex)
@@ -1056,6 +1122,380 @@ class FreePik(BaseClass):
         return result if result else False
 
     # ---------- Image FreePik ----------
+
+    # ---------- Image AI FreePik ----------
+
+    # Main Scrapper (Photo AI Scrapper)
+    def scrape_ais(self, url="https://www.freepik.com/search?ai=only&format=search&type=photo",
+                   query=None, account=False, premium=False):
+        nameSub = 'AI'
+        self._initial_open()  # Open
+        try_count = 3  # Default Try
+        if query:
+            url = f'{url}&query={query}'
+
+        if account:  # Sign In
+            self._sign_in()
+            try_count = 10
+
+        # Free Or Premium
+        if premium:
+            this_url = f"{url}&last_filter=premium&last_value=1&premium=1"
+            try_count = 100
+        else:
+            this_url = f"{url}&last_filter=selection&last_value=1&selection=1"
+
+        # Go To Main Scrap
+        self.driver.get(this_url)
+        # Wait To LOAD
+        wait = WebDriverWait(self.driver, 30)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        images_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
+        images_page = [href.get_attribute('href') for href in images_page]
+
+        # Check Folder
+        os.chdir(f'{self.path_download}')
+        if not os.path.exists(self.name):
+            os.mkdir(self.name)
+        os.chdir(self.name)
+        if not os.path.exists(nameSub):
+            os.mkdir(nameSub)
+        os.chdir('../../')
+
+        try_temp = 1
+        while True:
+            for image in images_page:
+                href_image = image
+                pure_href = href_image.split('#')[0]
+                full_name = href_image.replace('//', '/').split('/')[3].split('.')[0]
+                title_image = full_name.split('_')[0].replace('-', ' ')
+                id_image = full_name.split('_')[1]
+                new_file_path = None  # New Raname File
+
+                # Check Exist Element
+                self.db_cursor.execute("SELECT title FROM freepik_ais WHERE title=%s", (title_image,))
+                result = self.db_cursor.fetchone()
+                if result is not None:
+                    continue
+
+                # Chcek try Limit Download
+                if try_temp > try_count:
+                    print("Try Done")
+                    sleep(86500)  # Wait For Tomorrow
+                    try_temp = 1
+
+                # Open Vector
+                self.driver.get(href_image)
+                self.driver.switch_to.window(self.driver.window_handles[-1])
+                sleep(self.timeout_sleep)
+                self.driver.implicitly_wait(5)
+                # Scroll 200px Bottom
+                self.driver.execute_script("window.scrollBy(0, 200);")
+
+                os.chdir(f'{self.path_download}/{self.name}/{nameSub}')
+                if not os.path.exists(full_name):
+                    os.mkdir(full_name)
+                os.chdir('../../../')
+
+                # Details
+                try:  # File
+                    file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[0].text
+                    file_list = file_details.replace(':', '').split('/')
+                    file_size = file_list[0].strip()
+                    file_formats = file_list[1].strip()
+                except Exception as ex:
+                    print("Size Or Format None")
+                    print(ex)
+                    file_size, file_formats = 'unknown', 'unknown'
+                # Base Model
+                base_model = (self.driver.find_elements(by=By.XPATH, value="//span[@class='_1286nb12qx _1286nb189 _1286nb12qf']")[1].
+                              text.replace(':', '').strip())
+                current_url = self.driver.current_url.replace('//', '/').split('/')[2]  # License
+                file_license = 0  # Free
+                if 'premium' in current_url:
+                    file_license = 1  # Premium
+                # Related Tags
+                try:  # Check All Tags
+                    self.driver.find_element(by=By.XPATH,
+                                             value="//div[@style='grid-area:keywords']//button").click()
+                except Exception as ex:
+                    print("Tags Less...")
+                    print(ex)
+                all_tags_list = self.driver.find_elements(by=By.XPATH,
+                                                          value="//div[@style='grid-area:keywords']//ul//li//a")
+                file_tags = ''
+
+                # Seve Search Tags For Searching
+                os.chdir(f'search/')
+                if not os.path.exists(self.name):
+                    os.mkdir(self.name)
+                tags_save_search_file = {}
+                file_name_json = f'{self.name}/{self.name}_{nameSub}.json'
+                if os.path.exists(file_name_json):
+                    with open(file_name_json, 'r') as json_file:
+                        tags_save_search_file = json.load(json_file)  # Dict
+                else:
+                    with open(file_name_json, 'w') as json_file:
+                        tags_save_search_file = {}
+                        json.dump(tags_save_search_file, json_file)
+                for tag in all_tags_list:
+                    tag = tag.text.strip()
+                    if tag not in tags_save_search_file.keys():  # Check Exists Tag
+                        tags_save_search_file[tag] = 0
+                    file_tags = file_tags + str(tag) + ', '
+                with open(file_name_json, 'w') as outfile:
+                    json.dump(tags_save_search_file, outfile)  # Save To Json
+                os.chdir('../')
+
+                # Download Try
+                self.driver.find_element(by=By.XPATH, value='//button[@data-cy="wrapper-download-free"]').click()
+                sleep(self.timeout_sleep)
+                # Jpg Download
+                self.driver.find_element(by=By.XPATH, value='//button[@data-cy="dropdown-download-type"]').click()
+                sleep(self.timeout_sleep)
+                # Find Formats
+                try:
+                    file_format = self.driver.find_elements(by=By.XPATH, value=f'//a[@data-cy="download-size"]')[-1]
+                    # Downlaod
+                    before_download = os.listdir(self.path_download)
+                    file_format.click()
+                except Exception as ex:
+                    print(ex)
+                    continue
+                sleep(10)
+                after_download = os.listdir(self.path_download)
+                new_files = [f for f in after_download if f not in before_download]
+                # pattern_search = rf"^{id_vector}_\d+\.{formating}$"
+                while True:
+                    try:
+                        if new_files:
+                            if '.crdownload' in new_files[0]:  # Temp Download TimeOut
+                                sleep(10)
+                            full_path = os.path.join(self.path_download, new_files[0])
+                            if os.path.isfile(full_path):
+                                # file_extension = os.path.splitext(filename)[1]
+                                new_filename = f"{full_name}.jpg"
+                                new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                             full_name, new_filename)
+                                os.replace(full_path, new_file_path)
+                                if self.ftp is not None:
+                                    upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
+                                # TODO Resize Image For Temp
+                        break
+                    except Exception as ex:  # For Complate Download
+                        print(ex)
+                        sleep(30)
+                self.db_cursor.execute(
+                    "INSERT INTO freepik_ais (title, link, path_original, path_temp, size, format, base_model, license, tags) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (title_image, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
+                     f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
+                     file_size, file_formats, base_model, file_license, file_tags))
+                self.db_connection.commit()
+                try_temp += 1  # Check Try
+            self.driver.get(this_url)
+            # Wait To LOAD
+            wait = WebDriverWait(self.driver, 30)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            self.driver.find_element(by=By.XPATH, value="//a[@title='Next Page']").click()
+            # Wait To LOAD
+            sleep(random.randint(10, 20))
+            images_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-cy="resource-thumbnail"]//a')
+            images_page = [href.get_attribute('href') for href in images_page]
+            if not images_page:
+                os.chdir(f'search/')
+                file_name_json = f'{self.name}/{self.name}_{nameSub}.json'
+                check_here = False
+                with open(file_name_json, 'w+') as json_file:
+                    tags_save_search_file = json.load(json_file)  # Dict
+                    for tag_here in tags_save_search_file.keys():
+                        if tags_save_search_file[tag_here] == 0:
+                            tags_save_search_file[tag_here] = 1
+                            if re.search(r'query=\w+', this_url) is not None:
+                                re.sub(r'query=\w+', 'query=hello', this_url)
+                            else:
+                                re.sub(r'last_filter=\w+', 'last_filter=query', this_url)
+                                re.sub(r'last_value=\w+', f'last_value={tag_here}', this_url)
+                                this_url = f"{this_url}&query={tag_here}"
+                            check_here = True
+                            break
+                if not check_here:
+                    print('No Scrapping File More!')
+                else:
+                    self.driver.get(this_url)
+                    # Wait To LOAD
+                    wait = WebDriverWait(self.driver, 10)
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                    images_page = self.driver.find_elements(by=By.XPATH,
+                                                            value='//figure[@data-cy="resource-thumbnail"]//a')
+                    json.dump(tags_save_search_file, json_file)  # Save To Json
+                os.chdir(f'../')
+            this_url = self.driver.current_url.split('#')[0]
+
+    # Alone Scrapper (Photo AI Scrapper)
+    def scrape_ai(self, url, account=False):
+        nameSub = 'AI'
+        self._initial_open()  # Open
+
+        if account:  # Sign In
+            self._sign_in()
+
+        # Check Folder
+        os.chdir(f'{self.path_download}')
+        if not os.path.exists(self.name):
+            os.mkdir(self.name)
+        os.chdir(self.name)
+        if not os.path.exists(nameSub):
+            os.mkdir(nameSub)
+        os.chdir('../../')
+
+        # Open Vector
+        self.driver.get(url)
+        # Wait To LOAD
+        wait = WebDriverWait(self.driver, 30)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        # Scroll 200px Bottom
+        self.driver.execute_script("window.scrollBy(0, 200);")
+
+        href_image = url
+        pure_href = href_image.split('#')[0]
+        full_name = href_image.replace('//', '/').split('/')[3].split('.')[0]
+        title_image = full_name.split('_')[0].replace('-', ' ')
+        id_image = full_name.split('_')[1]
+        new_file_path = None  # New Raname File
+
+        os.chdir(f'{self.path_download}/{self.name}/{nameSub}')
+        if not os.path.exists(full_name):
+            os.mkdir(full_name)
+        os.chdir('../../..')
+
+        # Details
+        try:  # File
+            file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[0].text
+            file_list = file_details.replace(':', '').split('/')
+            file_size = file_list[0].strip()
+            file_formats = file_list[1].strip()
+        except Exception as ex:
+            print("Size Or Format None")
+            print(ex)
+            file_size, file_formats = 'unknown', 'unknown'
+        # Base Model
+        base_model = (
+            self.driver.find_elements(by=By.XPATH, value="//span[@class='_1286nb12qx _1286nb189 _1286nb12qf']")[1].
+            text.replace(':', '').strip())
+        current_url = self.driver.current_url.replace('//', '/').split('/')[2]  # License
+        file_license = 0  # Free
+        if 'premium' in current_url:
+            file_license = 1  # Premium
+        # Related Tags
+        try:  # Check All Tags
+            self.driver.find_element(by=By.XPATH, value="//div[@style='grid-area:keywords']//button").click()
+        except Exception as ex:
+            print("Tags Less...")
+            print(ex)
+        all_tags_list = self.driver.find_elements(by=By.XPATH,
+                                                  value="//div[@style='grid-area:keywords']//ul//li//a")
+        file_tags = ''
+        for tag in all_tags_list:
+            file_tags = file_tags + str(tag.text.strip()) + ', '
+            # Download Try
+            self.driver.find_element(by=By.XPATH, value='//button[@data-cy="wrapper-download-free"]').click()
+            sleep(self.timeout_sleep)
+            # Jpg Download
+            self.driver.find_element(by=By.XPATH, value='//button[@data-cy="dropdown-download-type"]').click()
+            sleep(self.timeout_sleep)
+            # Find Formats
+            try:
+                file_format = self.driver.find_elements(by=By.XPATH, value=f'//a[@data-cy="download-size"]')[-1]
+                # Downlaod
+                before_download = os.listdir(self.path_download)
+                file_format.click()
+            except Exception as ex:
+                print(ex)
+                continue
+            sleep(10)
+            after_download = os.listdir(self.path_download)
+            new_files = [f for f in after_download if f not in before_download]
+            # pattern_search = rf"^{id_vector}_\d+\.{formating}$"
+            while True:
+                try:
+                    if new_files:
+                        if '.crdownload' in new_files[0]:  # Temp Download TimeOut
+                            sleep(10)
+                        full_path = os.path.join(self.path_download, new_files[0])
+                        if os.path.isfile(full_path):
+                            # file_extension = os.path.splitext(filename)[1]
+                            new_filename = f"{full_name}.jpg"
+                            new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                         full_name, new_filename)
+                            os.replace(full_path, new_file_path)
+                            if self.ftp is not None:
+                                upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
+                            # TODO Resize Image For Temp
+                    break
+                except Exception as ex:  # For Complate Download
+                    print(ex)
+                    sleep(30)
+            self.db_cursor.execute(
+                "INSERT INTO freepik_ais (title, link, path_original, path_temp, size, format, base_model, license, tags) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (title_image, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
+                 f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
+                 file_size, file_formats, base_model, file_license, file_tags))
+            self.db_connection.commit()
+        # Fetch Result
+        self.db_cursor.execute("SELECT * FROM freepik_ais WHERE title = %s", (title_image,))
+        result = self.db_cursor.fetchone()
+        return result
+
+    # Search In DB (Photo AI)
+    def search_ais(self, link=None, title=None, size=None, formats=None, license_=None, tags=None, transfer=None,
+                   max_limit=25):
+        query = "SELECT * FROM freepik_ais "
+        params = []
+        conditions = []
+
+        search_params = {
+            'link': link,
+            'title': title,
+            'license': license_,
+            'transfer': transfer
+        }
+
+        for key, value in search_params.items():
+            if value is not None:
+                conditions.append(f"{key} = %s")
+                params.append(value)
+
+        if tags:
+            conditions.append("tags LIKE %s")
+            params.append(f'%{tags}%')
+
+        if formats:
+            conditions.append("formats LIKE %s")
+            params.append(f'%{formats}%')
+
+        if size:
+            conditions.append("size LIKE %s")
+            params.append(f'%{size}%')
+
+        if not conditions:
+            return False
+
+        query += 'WHERE '
+        query += " AND ".join(conditions)
+        query += f" LIMIT {max_limit}"
+
+        self.db_cursor.execute(query, tuple(params))
+
+        if link:
+            result = self.db_cursor.fetchone()
+        else:
+            result = self.db_cursor.fetchmany(max_limit)
+
+        return result if result else False
+
+    # ---------- Image AI FreePik ----------
 
 
 # Upload To Host (Ftp)
