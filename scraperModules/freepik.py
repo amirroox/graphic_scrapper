@@ -918,7 +918,7 @@ class FreePik(BaseClass):
                     except Exception as ex:  # For Complate Download
                         print(ex)
                         sleep(30)
-                self.db_cursor.execute("INSERT INTO freepik_images (title, link, path_original, path_temp, format, size, license, tags) "
+                self.db_cursor.execute("INSERT INTO freepik_images (title, link, path_original, path_temp, formats, size, license, tags) "
                                        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                                        (title_image, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
                                         f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
@@ -1063,7 +1063,7 @@ class FreePik(BaseClass):
                 print(ex)
                 sleep(30)
         self.db_cursor.execute(
-            "INSERT INTO freepik_images (title, link, path_original, path_temp, format, size, license, tags) "
+            "INSERT INTO freepik_images (title, link, path_original, path_temp, formats, size, license, tags) "
             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
             (title_image, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
              f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
@@ -1286,7 +1286,7 @@ class FreePik(BaseClass):
                         print(ex)
                         sleep(30)
                 self.db_cursor.execute(
-                    "INSERT INTO freepik_ais (title, link, path_original, path_temp, size, format, base_model, license, tags) "
+                    "INSERT INTO freepik_ais (title, link, path_original, path_temp, size, formats, base_model, license, tags) "
                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (title_image, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
                      f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
@@ -1437,7 +1437,7 @@ class FreePik(BaseClass):
                     print(ex)
                     sleep(30)
             self.db_cursor.execute(
-                "INSERT INTO freepik_ais (title, link, path_original, path_temp, size, format, base_model, license, tags) "
+                "INSERT INTO freepik_ais (title, link, path_original, path_temp, size, formats, base_model, license, tags) "
                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (title_image, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
                  f'{self.name}/{nameSub}/{full_name}/{full_name}.jpg',
@@ -1449,8 +1449,8 @@ class FreePik(BaseClass):
         return result
 
     # Search In DB (Photo AI)
-    def search_ais(self, link=None, title=None, size=None, formats=None, license_=None, tags=None, transfer=None,
-                   max_limit=25):
+    def search_ais(self, link=None, title=None, size=None, formats=None, base_model=None, license_=None, tags=None,
+                   transfer=None, max_limit=25):
         query = "SELECT * FROM freepik_ais "
         params = []
         conditions = []
@@ -1478,6 +1478,10 @@ class FreePik(BaseClass):
         if size:
             conditions.append("size LIKE %s")
             params.append(f'%{size}%')
+
+        if base_model:
+            conditions.append("base_model LIKE %s")
+            params.append(f'%{base_model}%')
 
         if not conditions:
             return False

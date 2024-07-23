@@ -25,6 +25,7 @@ async def get_freepic(model: str = Query(title="vector", default='vector'),
                       license_: str = Query(title="license", default=None),
                       tags: str = Query(title="tags", default=None),
                       transfer: str = Query(title="transfer", default=None),
+                      base_model: str = Query(title="base_model", default=None),
                       max_limit: int = Query(title="transfer", default=25),):
     scraper = FreePik(ftp_send=False)
     if link and ('?' in link or '#' in link):
@@ -32,6 +33,10 @@ async def get_freepic(model: str = Query(title="vector", default='vector'),
     result = None
     if model == 'vector':
         result = scraper.search_vectors(link, title, size, formats, license_, tags, transfer, max_limit)
+    elif model == 'image':
+        result = scraper.search_images(link, title, size, formats, license_, tags, transfer, max_limit)
+    elif model == 'ai':
+        result = scraper.search_ais(link, title, size, formats, base_model, license_, tags, transfer,  max_limit)
     else:
         return {
             "message": "Model Not Found!",
