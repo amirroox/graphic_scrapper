@@ -4,6 +4,7 @@ import re
 import shutil
 import zipfile
 
+import requests
 from selenium.webdriver.support.wait import WebDriverWait
 
 from config import config
@@ -135,7 +136,7 @@ class FreePik(BaseClass):
 
                 # Details
                 try:  # File
-                    file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[0].text
+                    file_details = self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[0].text
                     file_list = file_details.replace(':', '').split('/')
                     file_size = file_list[0].strip()
                     file_formats = file_list[1].strip()
@@ -244,7 +245,7 @@ class FreePik(BaseClass):
                                             file_formats, file_size, file_license, file_tags))
                     self.db_connection.commit()
                     if 'jpg' not in list_pass:  # Download JPG (picodl.ir)
-                        img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
+                        img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@style='grid-area:preview']//img")
                         href_img = img_jpg.get_attribute('src')
                         try:
                             self.driver.get('https://picodl.com')
@@ -344,7 +345,7 @@ class FreePik(BaseClass):
                                             f'{self.name}/{nameSub}/{full_name}/{full_name}.zip',
                                             file_formats, file_size, file_license, file_tags))
                     self.db_connection.commit()
-                    img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
+                    img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@style='grid-area:preview']//img")
                     href_img = img_jpg.get_attribute('src')
                     try:
                         self.driver.get('https://picodl.com')
@@ -432,7 +433,15 @@ class FreePik(BaseClass):
             this_url = self.driver.current_url.split('#')[0]
 
     # Alone Scrapper (Vector Scrapper)
-    def scrape_vector(self, url, account=False):
+    def scrape_vector(self, url: str, account=False):
+        
+        url = url.split('?')[0].split('#')[0]
+        # Check Exist Element
+        self.db_cursor.execute("SELECT title FROM freepik_vectors WHERE link=%s", (url,))
+        result = self.db_cursor.fetchone()
+        if result is not None:
+            return result
+
         nameSub = 'Vectors'
         self._initial_open()  # Open
 
@@ -470,8 +479,7 @@ class FreePik(BaseClass):
 
         # Details
         try:  # File
-            file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[
-                0].text
+            file_details = self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[0].text
             file_list = file_details.replace(':', '').split('/')
             file_size = file_list[0].strip()
             file_formats = file_list[1].strip()
@@ -560,7 +568,7 @@ class FreePik(BaseClass):
                                     file_formats, file_size, file_license, file_tags))
             self.db_connection.commit()
             if 'jpg' not in list_pass:  # Download JPG (picodl.ir)
-                img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
+                img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@style='grid-area:preview']//img")
                 href_img = img_jpg.get_attribute('src')
                 try:
                     self.driver.get('https://picodl.com')
@@ -660,7 +668,7 @@ class FreePik(BaseClass):
                                    (title_vector, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}.zip',
                                     file_formats, file_size, file_license, file_tags))
             self.db_connection.commit()
-            img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@class='_1286nb19f']//img")
+            img_jpg = self.driver.find_element(by=By.XPATH, value="//div[@style='grid-area:preview']//img")
             href_img = img_jpg.get_attribute('src')
             try:
                 self.driver.get('https://picodl.com')
@@ -837,7 +845,7 @@ class FreePik(BaseClass):
 
                 # Details
                 try:  # File
-                    file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[0].text
+                    file_details = self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[0].text
                     file_list = file_details.replace(':', '').split('/')
                     file_size = file_list[0].strip()
                     file_formats = file_list[1].strip()
@@ -966,6 +974,14 @@ class FreePik(BaseClass):
 
     # Alone Scrapper (Photo Scrapper)
     def scrape_image(self, url, account=False):
+
+        url = url.split('?')[0].split('#')[0]
+        # Check Exist Element
+        self.db_cursor.execute("SELECT title FROM freepik_images WHERE link=%s", (url,))
+        result = self.db_cursor.fetchone()
+        if result is not None:
+            return result
+    
         nameSub = 'Images'
         self._initial_open()  # Open
 
@@ -1003,8 +1019,7 @@ class FreePik(BaseClass):
 
         # Details
         try:  # File
-            file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[
-                0].text
+            file_details = self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[0].text
             file_list = file_details.replace(':', '').split('/')
             file_size = file_list[0].strip()
             file_formats = file_list[1].strip()
@@ -1199,7 +1214,7 @@ class FreePik(BaseClass):
 
                 # Details
                 try:  # File
-                    file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[0].text
+                    file_details = self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[0].text
                     file_list = file_details.replace(':', '').split('/')
                     file_size = file_list[0].strip()
                     file_formats = file_list[1].strip()
@@ -1208,7 +1223,7 @@ class FreePik(BaseClass):
                     print(ex)
                     file_size, file_formats = 'unknown', 'unknown'
                 # Base Model
-                base_model = (self.driver.find_elements(by=By.XPATH, value="//span[@class='_1286nb12qx _1286nb189 _1286nb12qf']")[1].
+                base_model = (self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[1].
                               text.replace(':', '').strip())
                 current_url = self.driver.current_url.replace('//', '/').split('/')[2]  # License
                 file_license = 0  # Free
@@ -1334,6 +1349,14 @@ class FreePik(BaseClass):
 
     # Alone Scrapper (Photo AI Scrapper)
     def scrape_ai(self, url, account=False):
+
+        url = url.split('?')[0].split('#')[0]
+        # Check Exist Element
+        self.db_cursor.execute("SELECT title FROM freepik_ais WHERE link=%s", (url,))
+        result = self.db_cursor.fetchone()
+        if result is not None:
+            return result
+        
         nameSub = 'AI'
         self._initial_open()  # Open
 
@@ -1371,7 +1394,7 @@ class FreePik(BaseClass):
 
         # Details
         try:  # File
-            file_details = self.driver.find_elements(by=By.XPATH, value="//ul[@class='_1286nb11a9']//li//span//span")[0].text
+            file_details = self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[0].text
             file_list = file_details.replace(':', '').split('/')
             file_size = file_list[0].strip()
             file_formats = file_list[1].strip()
@@ -1381,7 +1404,7 @@ class FreePik(BaseClass):
             file_size, file_formats = 'unknown', 'unknown'
         # Base Model
         base_model = (
-            self.driver.find_elements(by=By.XPATH, value="//span[@class='_1286nb12qx _1286nb189 _1286nb12qf']")[1].
+            self.driver.find_elements(by=By.XPATH, value="//div//div//div//ul//li//span//span")[1].
             text.replace(':', '').strip())
         current_url = self.driver.current_url.replace('//', '/').split('/')[2]  # License
         file_license = 0  # Free
@@ -1500,6 +1523,453 @@ class FreePik(BaseClass):
         return result if result else False
 
     # ---------- Image AI FreePik ----------
+
+    # ---------- 3D FreePik ----------
+
+    # Main Scrapper (3D Scrapper)
+    def scrape_3ds(self, url="https://www.freepik.com/3d-models",
+                   query=None, account=False, premium=False):
+        nameSub = '3D'
+        self._initial_open()  # Open
+        try_count = 3  # Default Try
+        if query:
+            url = f'https://www.freepik.com/3d-model/search?format=search&query={query}'
+
+        if account:  # Sign In
+            self._sign_in()
+            try_count = 10
+
+        # Free Or Premium
+        if premium:
+            try_count = 100
+
+        this_url = url
+
+        # Go To Main Scrap
+        self.driver.get(this_url)
+        # Wait To LOAD
+        wait = WebDriverWait(self.driver, 30)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        models_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-type="model"]//a')
+        models_page = [href.get_attribute('href') for href in models_page]
+
+        # Check Folder
+        os.chdir(f'{self.path_download}')
+        if not os.path.exists(self.name):
+            os.mkdir(self.name)
+        os.chdir(self.name)
+        if not os.path.exists(nameSub):
+            os.mkdir(nameSub)
+        os.chdir('../../')
+
+        try_temp = 1
+        while True:
+            for model in models_page:
+                href_model = model
+                pure_href = href_model.split('#')[0]
+                full_name = href_model.replace('//', '/').split('/')[3].split('.')[0]
+                title_model = full_name.split('_')[0].replace('-', ' ')
+                id_model = full_name.split('_')[1]
+                new_file_path = None  # New Raname File
+
+                # Check Exist Element
+                self.db_cursor.execute("SELECT title FROM freepik_3ds WHERE title=%s", (title_model,))
+                result = self.db_cursor.fetchone()
+                if result is not None:
+                    continue
+
+                # Chcek try Limit Download
+                if try_temp > try_count:
+                    print("Try Done")
+                    sleep(86500)  # Wait For Tomorrow
+                    try_temp = 1
+
+                # Open Model
+                self.driver.get(href_model)
+                self.driver.switch_to.window(self.driver.window_handles[-1])
+                sleep(self.timeout_sleep)
+                self.driver.implicitly_wait(5)
+                # Scroll 200px Bottom
+                self.driver.execute_script("window.scrollBy(0, 200);")
+
+                os.chdir(f'{self.path_download}/{self.name}/{nameSub}')
+                if not os.path.exists(full_name):
+                    os.mkdir(full_name)
+                os.chdir('../../../')
+
+                # Details
+                details = ''
+                try:  # File
+                    self.driver.find_elements(by=By.XPATH, value="//button[@data-modal='modal-details']")[-1].click()
+                    details_list = self.driver.find_elements(by=By.XPATH, value="//li[@class='detail__list--item']//div")
+                    i = 2
+                    for det in details_list:
+                        if i % 2 == 0:
+                            details = f"{details}{det.text}:"
+                            continue
+                        details = f"{details}{det.text}&"
+                    self.driver.find_element(by=By.XPATH, value="//div[@class='content']//button").click()
+                except Exception as ex:
+                    print("Size Or Format None")
+                    print(ex)
+                current_url = self.driver.current_url.replace('//', '/').split('/')[2]  # License
+                file_license = 0  # Free
+                if 'premium' in current_url:
+                    file_license = 1  # Premium
+                # Related Tags
+                try:  # Check All Tags
+                    self.driver.find_element(by=By.XPATH,
+                                             value="//div[@class='detail__keywords']//button").click()
+                except Exception as ex:
+                    print("Tags Less...")
+                    print(ex)
+                all_tags_list = self.driver.find_elements(by=By.XPATH,
+                                                          value="//div[@class='detail__keywords']//ul//li//a")
+                file_tags = ''
+
+                # Seve Search Tags For Searching
+                os.chdir(f'search/')
+                if not os.path.exists(self.name):
+                    os.mkdir(self.name)
+                tags_save_search_file = {}
+                file_name_json = f'{self.name}/{self.name}_{nameSub}.json'
+                if os.path.exists(file_name_json):
+                    with open(file_name_json, 'r') as json_file:
+                        tags_save_search_file = json.load(json_file)  # Dict
+                else:
+                    with open(file_name_json, 'w') as json_file:
+                        tags_save_search_file = {}
+                        json.dump(tags_save_search_file, json_file)
+                for tag in all_tags_list:
+                    tag = tag.text.strip()
+                    if tag not in tags_save_search_file.keys():  # Check Exists Tag
+                        tags_save_search_file[tag] = 0
+                    file_tags = file_tags + str(tag) + ', '
+                with open(file_name_json, 'w') as outfile:
+                    json.dump(tags_save_search_file, outfile)  # Save To Json
+                os.chdir('../')
+
+                # Download Try
+                image_main = self.driver.find_element(by=By.XPATH, value='//img[@class="thumb thumb-model"]').get_attribute('src')
+                img_data = requests.get(image_main).content
+                with open(f'{self.name}/{nameSub}/{full_name}/{full_name}__1.jpg', 'wb') as handler:
+                    handler.write(img_data)
+                sleep(10)
+                self.db_cursor.execute(
+                    "INSERT INTO freepik_3ds (title, link, main_photo, license, tags, details) "
+                    "VALUES (%s, %s, %s, %s, %s, %s)",
+                    (title_model, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}__1.jpg',
+                     file_license, file_tags, details))
+                self.db_connection.commit()
+                if self.ftp is not None:
+                    upload_to_host(self, nameSub, full_name, f'{self.name}/{nameSub}/{full_name}/{full_name}__1.jpg',
+                                   f'{full_name}__1.jpg')
+                try_temp += 1  # Check Try
+                gallery_square = self.driver.find_elements(by=By.XPATH, value=f'//img[@class="square-list--image"]')
+                gallery_square = gallery_square[1:]
+                i = 2
+                for gallery in gallery_square:
+                    img_src = gallery.get_attribute('src')
+                    img_data = requests.get(img_src).content
+                    nn = f'{self.name}/{nameSub}/{full_name}/{full_name}__{i}.jpg'
+                    with open(nn, 'wb') as handler:
+                        handler.write(img_data)
+                self.db_cursor.execute(
+                    f"UPDATE freepik_3ds SET gallery_2 = %s, gallery_3 = %s, gallery_4 = %s WHERE title = %s",
+                    (f'{self.name}/{nameSub}/{full_name}/{full_name}__2.jpg',
+                     f'{self.name}/{nameSub}/{full_name}/{full_name}__3.jpg',
+                     f'{self.name}/{nameSub}/{full_name}/{full_name}__4.jpg', title_model))
+                self.db_connection.commit()
+                list_download = ['fpx', 'zip']
+                check_list = []
+                for type_h in list_download:
+                    # Downlaod OBJ and FPX
+                    before_download = os.listdir(self.path_download)
+                    while True:
+                        try:
+                            self.driver.find_element(by=By.XPATH, value=f'//button[@data-type="{type_h}"]').click()
+                            check_list.append(type_h)
+                            after_download = os.listdir(self.path_download)
+                            new_files = [f for f in after_download if f not in before_download]
+                            if new_files:
+                                if '.crdownload' in new_files[0]:  # Temp Download TimeOut
+                                    sleep(10)
+                                full_path = os.path.join(self.path_download, new_files[0])
+                                if os.path.isfile(full_path):
+                                    new_filename = f"{full_name}.{type_h}"
+                                    new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                                 full_name, new_filename)
+                                    os.replace(full_path, new_file_path)
+                                    if self.ftp is not None:
+                                        upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
+                            break
+                        except Exception as ex:  # For Complate Download
+                            print(ex)
+                            sleep(30)
+                if 'fpx' in check_list:
+                    self.db_cursor.execute(
+                        f"UPDATE freepik_3ds SET path_fpx = %s WHERE title = %s",
+                        (f'{self.name}/{nameSub}/{full_name}/{full_name}.fpx', title_model))
+                if 'zip' in check_list:
+                    self.db_cursor.execute(
+                        f"UPDATE freepik_3ds SET path_obj = %s WHERE title = %s",
+                        (f'{self.name}/{nameSub}/{full_name}/{full_name}.zip', title_model))
+                self.db_connection.commit()
+            self.driver.get(this_url)
+            # Wait To LOAD
+            wait = WebDriverWait(self.driver, 30)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            self.driver.find_element(by=By.XPATH,
+                                     value='//a[@class="pagination__next button floatl pagination--static pd-y-none-i"]').click()
+            # Wait To LOAD
+            sleep(random.randint(10, 20))
+            models_page = self.driver.find_elements(by=By.XPATH, value='//figure[@data-type="model"]//a')
+            models_page = [href.get_attribute('href') for href in models_page]
+            if not models_page:
+                os.chdir(f'search/')
+                file_name_json = f'{self.name}/{self.name}_{nameSub}.json'
+                check_here = False
+                with open(file_name_json, 'w+') as json_file:
+                    tags_save_search_file = json.load(json_file)  # Dict
+                    for tag_here in tags_save_search_file.keys():
+                        if tags_save_search_file[tag_here] == 0:
+                            tags_save_search_file[tag_here] = 1
+                            if re.search(r'query=\w+', this_url) is not None:
+                                re.sub(r'query=\w+', 'query=hello', this_url)
+                            else:
+                                re.sub(r'last_filter=\w+', 'last_filter=query', this_url)
+                                re.sub(r'last_value=\w+', f'last_value={tag_here}', this_url)
+                                this_url = f"{this_url}&query={tag_here}"
+                            check_here = True
+                            break
+                if not check_here:
+                    print('No Scrapping File More!')
+                    exit()
+                else:
+                    self.driver.get(this_url)
+                    # Wait To LOAD
+                    wait = WebDriverWait(self.driver, 10)
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                    images_page = self.driver.find_elements(by=By.XPATH,
+                                                            value='//figure[@data-type="model"]//a')
+                    json.dump(tags_save_search_file, json_file)  # Save To Json
+                os.chdir(f'../')
+            this_url = self.driver.current_url.split('#')[0]
+
+    # Alone Scrapper (3D Scrapper)
+    def scrape_3d(self, url, account=False):
+
+        url = url.split('?')[0].split('#')[0]
+        # Check Exist Element
+        self.db_cursor.execute("SELECT title FROM freepik_vectors WHERE link=%s", (url,))
+        result = self.db_cursor.fetchone()
+        if result is not None:
+            return result
+    
+        nameSub = '3D'
+        self._initial_open()  # Open
+
+        if account:  # Sign In
+            self._sign_in()
+
+        # Check Folder
+        os.chdir(f'{self.path_download}')
+        if not os.path.exists(self.name):
+            os.mkdir(self.name)
+        os.chdir(self.name)
+        if not os.path.exists(nameSub):
+            os.mkdir(nameSub)
+        os.chdir('../../')
+        
+        # Go To Main Scrap
+        self.driver.get(url)
+        # Wait To LOAD
+        wait = WebDriverWait(self.driver, 30)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        # Scroll 200px Bottom
+        self.driver.execute_script("window.scrollBy(0, 200);")
+        
+        href_model = url
+        pure_href = href_model.split('#')[0]
+        full_name = href_model.replace('//', '/').split('/')[3].split('.')[0]
+        title_model = full_name.split('_')[0].replace('-', ' ')
+        id_model = full_name.split('_')[1]
+        new_file_path = None  # New Raname File
+
+
+        os.chdir(f'{self.path_download}/{self.name}/{nameSub}')
+        if not os.path.exists(full_name):
+            os.mkdir(full_name)
+        os.chdir('../../../')
+
+        # Details
+        details = ''
+        try:  # File
+            self.driver.find_elements(by=By.XPATH, value="//button[@data-modal='modal-details']")[-1].click()
+            details_list = self.driver.find_elements(by=By.XPATH,
+                                                     value="//li[@class='detail__list--item']//div")
+            i = 2
+            for det in details_list:
+                if i % 2 == 0:
+                    details = f"{details}{det.text}:"
+                    continue
+                details = f"{details}{det.text}&"
+            self.driver.find_element(by=By.XPATH, value="//div[@class='content']//button").click()
+        except Exception as ex:
+            print("Size Or Format None")
+            print(ex)
+        current_url = self.driver.current_url.replace('//', '/').split('/')[2]  # License
+        file_license = 0  # Free
+        if 'premium' in current_url:
+            file_license = 1  # Premium
+        # Related Tags
+        try:  # Check All Tags
+            self.driver.find_element(by=By.XPATH,
+                                     value="//div[@class='detail__keywords']//button").click()
+        except Exception as ex:
+            print("Tags Less...")
+            print(ex)
+        all_tags_list = self.driver.find_elements(by=By.XPATH,
+                                                  value="//div[@class='detail__keywords']//ul//li//a")
+        file_tags = ''
+
+        # Seve Search Tags For Searching
+        os.chdir(f'search/')
+        if not os.path.exists(self.name):
+            os.mkdir(self.name)
+        tags_save_search_file = {}
+        file_name_json = f'{self.name}/{self.name}_{nameSub}.json'
+        if os.path.exists(file_name_json):
+            with open(file_name_json, 'r') as json_file:
+                tags_save_search_file = json.load(json_file)  # Dict
+        else:
+            with open(file_name_json, 'w') as json_file:
+                tags_save_search_file = {}
+                json.dump(tags_save_search_file, json_file)
+        for tag in all_tags_list:
+            tag = tag.text.strip()
+            if tag not in tags_save_search_file.keys():  # Check Exists Tag
+                tags_save_search_file[tag] = 0
+            file_tags = file_tags + str(tag) + ', '
+        with open(file_name_json, 'w') as outfile:
+            json.dump(tags_save_search_file, outfile)  # Save To Json
+        os.chdir('../')
+
+        # Download Try
+        image_main = self.driver.find_element(by=By.XPATH,
+                                              value='//img[@class="thumb thumb-model"]').get_attribute('src')
+        img_data = requests.get(image_main).content
+        with open(f'{self.name}/{nameSub}/{full_name}/{full_name}__1.jpg', 'wb') as handler:
+            handler.write(img_data)
+        sleep(10)
+        self.db_cursor.execute(
+            "INSERT INTO freepik_3ds (title, link, main_photo, license, tags, details) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (title_model, pure_href, f'{self.name}/{nameSub}/{full_name}/{full_name}__1.jpg',
+             file_license, file_tags, details))
+        self.db_connection.commit()
+        if self.ftp is not None:
+            upload_to_host(self, nameSub, full_name, f'{self.name}/{nameSub}/{full_name}/{full_name}__1.jpg',
+                           f'{full_name}__1.jpg')
+        gallery_square = self.driver.find_elements(by=By.XPATH, value=f'//img[@class="square-list--image"]')
+        gallery_square = gallery_square[1:]
+        i = 2
+        for gallery in gallery_square:
+            img_src = gallery.get_attribute('src')
+            img_data = requests.get(img_src).content
+            nn = f'{self.name}/{nameSub}/{full_name}/{full_name}__{i}.jpg'
+            with open(nn, 'wb') as handler:
+                handler.write(img_data)
+        self.db_cursor.execute(
+            f"UPDATE freepik_3ds SET gallery_2 = %s, gallery_3 = %s, gallery_4 = %s WHERE title = %s",
+            (f'{self.name}/{nameSub}/{full_name}/{full_name}__2.jpg',
+             f'{self.name}/{nameSub}/{full_name}/{full_name}__3.jpg',
+             f'{self.name}/{nameSub}/{full_name}/{full_name}__4.jpg', title_model))
+        self.db_connection.commit()
+        list_download = ['fpx', 'zip']
+        check_list = []
+        for type_h in list_download:
+            # Downlaod OBJ and FPX
+            before_download = os.listdir(self.path_download)
+            while True:
+                try:
+                    self.driver.find_element(by=By.XPATH, value=f'//button[@data-type="{type_h}"]').click()
+                    check_list.append(type_h)
+                    after_download = os.listdir(self.path_download)
+                    new_files = [f for f in after_download if f not in before_download]
+                    if new_files:
+                        if '.crdownload' in new_files[0]:  # Temp Download TimeOut
+                            sleep(10)
+                        full_path = os.path.join(self.path_download, new_files[0])
+                        if os.path.isfile(full_path):
+                            new_filename = f"{full_name}.{type_h}"
+                            new_file_path = os.path.join(f'{self.path_download}/{self.name}/{nameSub}',
+                                                         full_name, new_filename)
+                            os.replace(full_path, new_file_path)
+                            if self.ftp is not None:
+                                upload_to_host(self, nameSub, full_name, new_file_path, new_filename)
+                    break
+                except Exception as ex:  # For Complate Download
+                    print(ex)
+                    sleep(30)
+        if 'fpx' in check_list:
+            self.db_cursor.execute(
+                f"UPDATE freepik_3ds SET path_fpx = %s WHERE title = %s",
+                (f'{self.name}/{nameSub}/{full_name}/{full_name}.fpx', title_model))
+        if 'zip' in check_list:
+            self.db_cursor.execute(
+                f"UPDATE freepik_3ds SET path_obj = %s WHERE title = %s",
+                (f'{self.name}/{nameSub}/{full_name}/{full_name}.zip', title_model))
+        self.db_connection.commit()
+        # Fetch Result
+        self.db_cursor.execute("SELECT * FROM freepik_ais WHERE title = %s", (title_model,))
+        result = self.db_cursor.fetchone()
+        return result
+
+    # Search In DB (3D)
+    def search_3ds(self, link=None, title=None, details=None, license_=None, tags=None, transfer=None,
+                   max_limit=25):
+        query = "SELECT * FROM freepik_3ds "
+        params = []
+        conditions = []
+
+        search_params = {
+            'link': link,
+            'title': title,
+            'license': license_,
+            'transfer': transfer
+        }
+
+        for key, value in search_params.items():
+            if value is not None:
+                conditions.append(f"{key} = %s")
+                params.append(value)
+
+        if tags:
+            conditions.append("tags LIKE %s")
+            params.append(f'%{tags}%')
+
+        if details:
+            conditions.append("details LIKE %s")
+            params.append(f'%{details}%')
+
+        if not conditions:
+            return False
+
+        query += 'WHERE '
+        query += " AND ".join(conditions)
+        query += f" LIMIT {max_limit}"
+
+        self.db_cursor.execute(query, tuple(params))
+
+        if link:
+            result = self.db_cursor.fetchone()
+        else:
+            result = self.db_cursor.fetchmany(max_limit)
+
+        return result if result else False
+
+    # ---------- 3D FreePik ----------
 
 
 # Upload To Host (Ftp)

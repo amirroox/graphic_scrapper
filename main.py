@@ -13,7 +13,7 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Hello Man"}
+    return {"message": "Hello Boy"}
 
 
 @app.get("/freepik")
